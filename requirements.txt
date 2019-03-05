@@ -1,1 +1,2 @@
 # Add plugins here
+sentry-dingtalk-new
