@@ -1,2 +1,7 @@
 # Add plugins here
-sentry-dingtalk-new
+
+# https://github.com/anshengme/sentry-dingding
+sentry-dingding
+
+# https://github.com/Banno/getsentry-ldap-auth
+sentry-ldap-auth
