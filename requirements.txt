@@ -2,6 +2,5 @@
 
 # https://github.com/anshengme/sentry-dingding
 sentry-dingding
-
-# https://github.com/Banno/getsentry-ldap-auth
-sentry-ldap-auth
+# sentry-dingding require redis-py-cluster specific version
+redis-py-cluster==1.3.4

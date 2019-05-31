@@ -29,6 +29,9 @@
 #  SENTRY_MAILGUN_API_KEY
 #  SENTRY_SINGLE_ORGANIZATION
 #  SENTRY_SECRET_KEY
+#  SLACK_CLIENT_ID
+#  SLACK_CLIENT_SECRET
+#  SLACK_VERIFICATION_TOKEN
 #  GITHUB_APP_ID
 #  GITHUB_API_SECRET
 #  BITBUCKET_CONSUMER_KEY
@@ -279,6 +282,15 @@ else:
 if SENTRY_OPTIONS['mail.enable-replies']:
     SENTRY_OPTIONS['mail.reply-hostname'] = env('SENTRY_SMTP_HOSTNAME') or ''
 
+#####################
+# SLACK INTEGRATION #
+#####################
+slack = env('SLACK_CLIENT_ID') and env('SLACK_CLIENT_SECRET')
+if slack:
+    SENTRY_OPTIONS['slack.client-id'] = env('SLACK_CLIENT_ID')
+    SENTRY_OPTIONS['slack.client-secret'] = env('SLACK_CLIENT_SECRET')
+    SENTRY_OPTIONS['slack.verification-token'] = env('SLACK_VERIFICATION_TOKEN') or ''
+
 # If this value ever becomes compromised, it's important to regenerate your
 # SENTRY_SECRET_KEY. Changing this value will result in all current sessions
 # being invalidated.
@@ -305,4 +317,46 @@ if 'BITBUCKET_CONSUMER_KEY' in os.environ:
     BITBUCKET_CONSUMER_KEY = env('BITBUCKET_CONSUMER_KEY')
     BITBUCKET_CONSUMER_SECRET = env('BITBUCKET_CONSUMER_SECRET')
 
-SENTRY_DEFAULT_TIME_ZONE = 'Asia/Shanghai'
+####################
+# sentry-ldap-auth #
+####################
+import ldap
+from django_auth_ldap.config import LDAPSearch, GroupOfUniqueNamesType
+
+AUTH_LDAP_SERVER_URI = env('AUTH_LDAP_SERVER_URI')
+AUTH_LDAP_BIND_DN = env('AUTH_LDAP_BIND_DN')
+AUTH_LDAP_BIND_PASSWORD = env('AUTH_LDAP_BIND_PASSWORD')
+
+AUTH_LDAP_USER_SEARCH = LDAPSearch(
+    env('AUTH_LDAP_USER_SEARCH'),
+    ldap.SCOPE_SUBTREE,
+    '(mail=%(user)s)',
+)
+
+AUTH_LDAP_GROUP_SEARCH = LDAPSearch(
+    env('AUTH_LDAP_GROUP_SEARCH'),
+    ldap.SCOPE_SUBTREE,
+    '(objectClass=groupOfUniqueNames)'
+)
+
+AUTH_LDAP_GROUP_TYPE = GroupOfUniqueNamesType()
+AUTH_LDAP_REQUIRE_GROUP = None
+AUTH_LDAP_DENY_GROUP = None
+
+AUTH_LDAP_USER_ATTR_MAP = {
+    'name': 'cn',
+    'email': 'mail'
+}
+
+AUTH_LDAP_FIND_GROUP_PERMS = False
+AUTH_LDAP_CACHE_GROUPS = True
+AUTH_LDAP_GROUP_CACHE_TIMEOUT = 3600
+
+AUTH_LDAP_DEFAULT_SENTRY_ORGANIZATION = unicode(env('AUTH_LDAP_DEFAULT_SENTRY_ORGANIZATION'))
+AUTH_LDAP_SENTRY_ORGANIZATION_ROLE_TYPE = env('AUTH_LDAP_SENTRY_ORGANIZATION_ROLE_TYPE')
+AUTH_LDAP_SENTRY_ORGANIZATION_GLOBAL_ACCESS = True
+AUTH_LDAP_SENTRY_USERNAME_FIELD = 'uid'
+
+AUTHENTICATION_BACKENDS = AUTHENTICATION_BACKENDS + (
+    'sentry_ldap_auth.backend.SentryLdapBackend',
+)
