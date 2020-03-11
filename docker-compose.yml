@@ -42,6 +42,10 @@ services:
   postgres:
     restart: unless-stopped
     image: postgres:9.5
+    environment: 
+      # https://github.com/docker-library/postgres/issues/681
+      # postgres 的不兼容升级，需要以下环境变量作为修复
+      POSTGRES_HOST_AUTH_METHOD: trust
     volumes:
       - sentry-postgres:/var/lib/postgresql/data
 
